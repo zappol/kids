@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>New Concept English - 1A</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script type="text/javascript" src="data.js"></script>
+
+    <style>
+        body {
+            font-size: 1.1em;
+        }
+
+        a {
+            padding: 4px 7px;
+            min-width: 48px;
+            min-height: 32px;
+            max-height: 32px;
+            text-overflow: ellipsis;
+            font-size: 1.2em;
+        }
+
+        label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="host" style="orientation: vertical; display: flex; flex-flow: row wrap;">
+
+        <div style="orientation: vertical; width: 100%; margin: auto;">
+            <audio controls>
+                <source id="audioSource" type="audio/mpeg">
+            </audio>
+        </div>
+        <div id="categorySelector"></div>
+
+        <form id="audio_links" style="orientation: vertical; display: flex; flex-flow: row wrap;">
+
+        </form>
+
+    </div>
+</body>
+
+<script>
+    // Load data.
+    function loadAll() {
+        generateLinks();
+        addCategorySelector();
+
+        // Add categories.
+        function addCategorySelector() {
+            var host = document.getElementById("categorySelector");
+
+            categories = [];
+
+            window.setTimeout(function () {
+                if (categories.length > 0) {
+                    document.getElementsByName('category').item(categories.length - 1).click();
+                }
+            }, 200);
+
+            // Radio group.
+            categories.forEach((category, index) => {
+                var radioButton = document.createElement("input");
+                radioButton.type = "radio";
+                radioButton.name = "category";
+                radioButton.setAttribute('amounts', categories_amount[index]);
+
+                const id = `_category_${index}`;
+
+                radioButton.id = id;
+                radioButton.value = category;
+                host.appendChild(radioButton);
+
+                var label = document.createElement('label');
+                label.for = id;
+                label.textContent = category;
+                host.appendChild(label);
+            });
+        }
+
+        function setVisited(key) {
+            window.localStorage.setItem(key, 1);
+        }
+
+        function isVisited(key) {
+            return !!window.localStorage.getItem(key);
+        }
+
+        function generateLinks() {
+            // clear links and then re-fill.
+            var host = document.getElementById("audio_links");
+            host.innerHTML = "";
+
+            var unit = "";
+
+            for (var key in data) {
+                if (unit.length == 0){
+                    unit = key.substr(0,3);
+                }
+
+                if (key.indexOf(unit) == -1){
+                    unit = key.substr(0, 3);
+
+                    var separator = document.createElement('div');
+                    separator.style = "width:100%; height:2px";
+                    host.appendChild(separator);
+                }
+
+                link = data[key];
+                var audioDiv = document.createElement(`a`);
+                audioDiv.href = "#";
+
+                audioDiv.setAttribute('audio-url', link);
+
+                audioDiv.style.alignContent = "vertic"
+                audioDiv.innerHTML = key;
+
+                if (isVisited(key)) {
+                    colorVisited(audioDiv);
+                }
+                host.appendChild(audioDiv);
+            }
+        }
+
+        function colorVisited(element) {
+            element.style.color = "green";
+        }
+
+        function clickHandler(ev) {
+            var audioUrl = ev.target.getAttribute('audio-url');
+            if (!!audioUrl) {
+                ev.preventDefault();
+
+                var audioElem = document.getElementsByTagName('audio')[0];
+                audioElem.pause();
+
+                var audioSourceElem = document.getElementById('audioSource');
+                audioSourceElem.src = audioUrl;
+
+                audioElem.load();
+                audioElem.play();
+
+                colorVisited(ev.target);
+
+                setVisited(ev.target.textContent);
+
+            } else {
+                /**
+              var categoryElement = ev.target.name == "category" ? ev.target : !!ev.target.for && document.getElementById(ev.target.for);
+              if (categoryElement != null && categoryElement.name == "category") {
+                categoryElement.checked = true;
+                var amountsStr = categoryElement.getAttribute('amounts');
+                var amounts = Number.parseInt(amountsStr);
+                loadCategory(categoryElement.value, amounts);
+              }
+              */
+            }
+        }
+
+        document.addEventListener('click', clickHandler);
+        document.addEventListener('touchend', clickHandler);
+    }
+
+    window.onload = loadAll;
+</script>
+
+</html>
